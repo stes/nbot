@@ -16,7 +16,7 @@ def fetch_content(url):
     return content
 
 def remove_tags(data):
-    p = re.compile(r'<.*?>')
+    p = re.compile(r'<.*?>', re.DOTALL)
     return p.sub('', data)
 
 def remove_spaces(data):
@@ -29,7 +29,7 @@ tmp = ''
 for c in remove_spaces(remove_tags(content)):
     tmp+=c
     if i > 80:
-        print tmp
+        print(tmp)
         tmp = ''
         i = 0
     else:
