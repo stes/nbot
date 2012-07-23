@@ -8,9 +8,9 @@ from src.nbot.google.google import search
 import httplib
 import re
 
-def fetch_content(url):
-    conn = httplib.HTTPConnection(url)
-    conn.request("GET", "/index.html")
+def fetch_content(authority, path):
+    conn = httplib.HTTPConnection(authority)
+    conn.request("GET", path+"/index.html")
     response = conn.getresponse()
     content = response.read()
     conn.close()
