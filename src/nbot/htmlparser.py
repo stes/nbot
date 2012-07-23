@@ -24,9 +24,14 @@ def remove_spaces(data):
     p = re.compile(r'\s+')
     return p.sub(' ', data)
 
-
-for url in search('"Breaking Code" WordPress blog', stop=20):
-    print(url)
+def google_search(query, results):
+    url_gen = search(query, stop=results)
+    urls = []
+    for url in url_gen:
+        urls.append(url)
+        if (len(urls) >= results):
+            break
+    return urls
 
 '''
 i = 0
