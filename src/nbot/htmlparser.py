@@ -4,8 +4,9 @@ Created on 23.07.2012
 @author: stes
 '''
 
-import re
+from src.nbot.google.google import search
 import httplib
+import re
 
 def fetch_content(url):
     conn = httplib.HTTPConnection(url)
@@ -23,7 +24,11 @@ def remove_spaces(data):
     p = re.compile(r'\s+')
     return p.sub(' ', data)
 
-content = fetch_content("python.org")
+
+for url in search('"Breaking Code" WordPress blog', stop=20):
+    print(url)
+
+'''
 i = 0
 tmp = ''
 for c in remove_spaces(remove_tags(content)):
@@ -34,3 +39,4 @@ for c in remove_spaces(remove_tags(content)):
         i = 0
     else:
         i+=1
+'''
