@@ -9,6 +9,10 @@ from numpy.linalg import *
 from htmlparser import *
 
 def preprocess(text):
+    '''
+    preprocesses the given text before feeding it to the classification
+    system
+    '''
     p = re.compile(r'<script.*?</script>', re.DOTALL)
     text = p.sub('', text)
     p = re.compile(r'<a href.*?</a>', re.DOTALL)
