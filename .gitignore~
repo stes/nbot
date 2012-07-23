@@ -2,8 +2,5 @@
 bin
 obj
 
-# bytecode
-*.pyc
-
 # mstest test results
 TestResults
