@@ -1,4 +1,4 @@
-#nbot
+#nbot - README
 
 ##Overview
 
@@ -12,8 +12,8 @@ Currently, nbot is under active development.
 
 Currently, the following python libraries have to be installed in order to run the application:
 
-NumPy - http://numpy.scipy.org/
-stemming 1.0 - http://numpy.scipy.org/
+* NumPy - http://numpy.scipy.org/
+* stemming 1.0 - http://numpy.scipy.org/
 
 
 Copyright (c) 2012 Redix, stes
