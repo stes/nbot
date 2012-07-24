@@ -1,7 +1,6 @@
-nbot
-====
+#nbot
 
-=== Overview ===
+##Overview
 
 The 'nbot' - or 'news bot' - is a specialised web crawler used to autonomously search the web for news you are interested in. Based on your ratings of articles you read, the nbot is able to classifiy new articles according to their estimated relevance.
 
@@ -9,7 +8,8 @@ nbot is developed using Python 2.7. The first step is to finish a cli applicatio
 
 Currently, nbot is under active development.
 
-=== Dependencies ===
+##Dependencies
+
 Currently, the following python libraries have to be installed in order to run the application:
 
 NumPy - http://numpy.scipy.org/
