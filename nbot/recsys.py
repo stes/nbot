@@ -9,6 +9,7 @@ from numpy import *
 from numpy.linalg import *
 from operator import itemgetter
 from tools import printlist
+from stemming.porter import stem
 
 def preprocess(text):
     '''
@@ -24,7 +25,11 @@ def preprocess(text):
     text = text.lower()
     p = re.compile(r'[^a-z\s]', re.DOTALL)
     text = p.sub('', text)
-    return text
+    
+    stemmed_text = ''
+    for word in text.split():
+        stemmed_text += stem(word) + " "
+    return stemmed_text
 
 def gen_feature_vector(mask, document):
     '''
