@@ -23,19 +23,9 @@ def preprocess(text):
     text = p.sub('', text)
     return text
 
-if __name__ == '__main__':
-    content = fetch_content('codinghorror.com', '/blog')
-    content = preprocess(content)
-    tmp = ''
-    for c in content:
-        tmp+=c
-        if len(tmp) > 80:
-            print(tmp)
-            tmp = ''
-
 class RecommenderSystem():
     '''
-    Logistic regression classifier used to rate new pages
+    System to rate new pages and estimate the relevance for the user
     '''
 
     def __init__(self):
@@ -68,11 +58,40 @@ class RecommenderSystem():
 
 class VocabList(): 
     '''
-    dictionary to store all possible words in order to generate
-    a feature vector
+    dictionary to store all possible words
     '''   
     
     def __init__(self):
         '''
         Constructor
         '''
+        self.__dict = dict()
+    
+    def expand_with(self, text):
+        '''
+        expands the vocabulary list using the specified (preprocessed) text
+        '''
+        for word in text.split():
+            if self.__dict.has_key(word):
+                self.__dict[word] += 1
+            else:
+                self.__dict[word] = 1
+    
+    def __str__(self):
+        string = ''
+        for item in self.__dict:
+            string += "%s : %d\n" % (item, self.__dict[item])
+        return string
+    
+if __name__ == '__main__':
+    content = fetch_content('codinghorror.com', '/blog')
+    content = preprocess(content)
+    tmp = ''
+    for c in content:
+        tmp+=c
+        if len(tmp) > 80:
+            print(tmp)
+            tmp = ''
+    vlist = VocabList()
+    vlist.expand_with(content)
+    print vlist
