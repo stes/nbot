@@ -35,14 +35,36 @@ if __name__ == '__main__':
 
 class RecommenderSystem():
     '''
-    classdocs
+    Logistic regression classifier used to rate new pages
     '''
-
 
     def __init__(self):
         '''
         Constructor
         '''
+    
+    def rate(self, document):
+        '''
+        rates the specified document
+        @return: a value between 0 and 1 that specifies how well this
+        document suits to the user
+        '''
+        pass
+    
+    def set_rate(self, document, rating):
+        '''
+        Lets the user rate a particular document
+        @param rating: The user rating, between 0 (no interest) and 1 (great interest)
+        '''
+        pass
+    
+    def train(self, iterations, learnrate):
+        '''
+        Trains the classifier
+        @param iterations: the number of iterations
+        @param learnrate: the learning rate
+        '''
+        pass
 
 class VocabList(): 
     '''

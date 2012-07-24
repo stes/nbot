@@ -5,10 +5,15 @@ Created on 23.07.2012
 '''
 
 from src.nbot.google.google import search
+from src.nbot.tools import *
 import httplib
 import re
 
 def fetch_content(authority, path):
+    '''
+    fetches content from the specified webpage and returns
+    the html document
+    '''
     conn = httplib.HTTPConnection(authority)
     conn.request("GET", path+"/index.html")
     response = conn.getresponse()
@@ -24,7 +29,20 @@ def remove_spaces(data):
     p = re.compile(r'\s+')
     return p.sub(' ', data)
 
+def get_hyperlinks(html):
+    '''
+    extracts all hyperlinks from the given html document
+    and returns them in a list
+    '''
+    p = re.compile(r'href="(.*?)".*?', re.DOTALL)
+    return p.findall(html)
+
 def google_search(query, results):
+    '''
+    performs a google search using the given query. Returns
+    a list with urls when the specified number of results was
+    found
+    '''
     url_gen = search(query, stop=results)
     urls = []
     for url in url_gen:
@@ -33,15 +51,7 @@ def google_search(query, results):
             break
     return urls
 
-'''
-i = 0
-tmp = ''
-for c in remove_spaces(remove_tags(content)):
-    tmp+=c
-    if i > 80:
-        print(tmp)
-        tmp = ''
-        i = 0
-    else:
-        i+=1
-'''
+if __name__ == '__main__':
+    page = fetch_content('news.google.de', '')
+    urls = get_hyperlinks(page)
+    printlist(urls)
