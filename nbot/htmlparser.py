@@ -4,8 +4,8 @@ Created on 23.07.2012
 @author: stes
 '''
 
-from src.nbot.google.google import search
-from src.nbot.tools import *
+from nbot.google.google import *
+from tools import *
 import httplib
 import re
 

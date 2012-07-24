@@ -30,7 +30,7 @@ __version__ = "$Id: google.py 930 2012-02-13 21:21:25Z qvasimodo $"
 
 __all__ = ['search']
 
-from src.nbot.google import BeautifulSoup
+from nbot.google import BeautifulSoup
 import cookielib
 import os
 import time
