@@ -5,6 +5,7 @@ Created on 24.07.2012
 '''
 
 from hashlib import sha1
+from operator import itemgetter
 import os
 
 def load_document(path):
@@ -56,6 +57,74 @@ class Document():
         @return: the content of this document
         '''
         return self.__content
+
+class VocabList(): 
+    '''
+    Vocabulary list used to create a 'bag of words' model out of a given text document.
+    '''   
+    
+    def __init__(self):
+        '''
+        Constructs a new, empty vocabulary list
+        '''
+        self.__dict = dict()
+    
+    def expand_with(self, text):
+        '''
+        expands the vocabulary list using the specified (preprocessed) text
+        @param text: the text whose words should be added to the vocabulary list
+        '''
+        for word in text.split():
+            if self.__dict.has_key(word):
+                self.__dict[word] += 1
+            else:
+                self.__dict[word] = 1
+    
+    def clean(self, threshold):
+        '''
+        removes all entries with a quantity less or equals the threshold value
+        @param threshold: the threshold
+        '''
+        rmv = []
+        for item in self.__dict:
+            if (self.__dict[item] <= threshold):
+                rmv.append(item)
+        for item in rmv:
+            self.__dict.pop(item)
+    
+    def gen_mask(self):
+        '''
+        Generates an array with a list of all words in this vocabulary list
+        '''
+        array = []
+        for item in self.sort():
+            array.append(item[0])
+        return array        
+    
+    def sort(self):
+        '''
+        Returns a sorted dictionary containing the elements of this dictionary
+        '''
+        return sorted(self.__dict.items(), key=itemgetter(1), reverse=True)
+    
+    def quantity_of(self, word):
+        '''
+        Returns the number of occurrences of the specified word in the texts
+        added to this vocabulary list so far
+        
+        @param word: the word
+        
+        @param return: the quantity of the specified word, 0 if not in the list
+        '''
+        if not self.__dict.has_key(word):
+            return 0
+        return self.__dict[word]
+    
+    def __str__(self):
+        string = ''
+        for item in self.__dict:
+            string += "%s : %d\n" % (item, self.__dict[item])
+        return string
 
 def __sort_dic(dic):
     # TODO
@@ -119,7 +188,13 @@ class Library():
         for filename in os.listdir(path):
             doc = load_document(os.path.join(path, filename))
             if (not check_hash) or filename == doc.hash():
-                self.add_document(doc)        
+                self.add_document(doc)
+    
+    def gen_vocablist(self):
+        vlist = VocabList()
+        for doc in self.__dict.values():
+            vlist.expand_with(doc.content())
+        return vlist
     
     def __str__(self):
         string = ''
