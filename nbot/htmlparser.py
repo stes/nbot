@@ -5,21 +5,20 @@ Created on 23.07.2012
 '''
 
 from nbot.google.google import *
+from nbot.google.BeautifulSoup import BeautifulSoup, SoupStrainer
 from tools import *
 import httplib
+import httplib2
 import re
 
-def fetch_content(authority, path):
+def fetch_content(uri):
     '''
     fetches content from the specified webpage and returns
     the html document
     '''
-    conn = httplib.HTTPConnection(authority)
-    conn.request("GET", path+"/index.html")
-    response = conn.getresponse()
-    content = response.read()
-    conn.close()
-    return content
+    http = httplib2.Http()
+    status, response = http.request(uri)
+    return response
 
 def remove_tags(data):
     p = re.compile(r'<.*?>', re.DOTALL)
@@ -34,8 +33,11 @@ def get_hyperlinks(html):
     extracts all hyperlinks from the given html document
     and returns them in a list
     '''
-    p = re.compile(r'href="(.*?)".*?', re.DOTALL)
-    return p.findall(html)
+    urllist = []
+    for link in BeautifulSoup(html, parseOnlyThese=SoupStrainer('a')):
+        if link.has_key('href'):
+            urllist.append(link['href'])
+    return urllist
 
 def google_search(query, results):
     '''
@@ -51,7 +53,9 @@ def google_search(query, results):
             break
     return urls
 
-if __name__ == '__main__':
-    page = fetch_content('news.google.de', '')
-    urls = get_hyperlinks(page)
-    printlist(urls)
+if __name__ == "__main__":
+    #TODO fix this
+    content = fetch_content('http://www.codinghorror.com/blog/\
+                        2012/07')
+    print (BeautifulSoup(content)).prettify()
+    printlist(get_hyperlinks(content))

@@ -2,8 +2,14 @@
 bin
 obj
 
+# ressources (save files etc.)
+res
+
 # bytecode
 *.pyc
 
 # mstest test results
 TestResults
+
+# other stuff
+*~

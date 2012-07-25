@@ -52,7 +52,20 @@ def gen_feature_vector(mask, document):
     for word in mask:
         fvector.append(vlist.quantity_of(word))
     return fvector
-    
+
+def expand_feature_vector(X):
+    '''
+    '''
+    X_new = []
+    for row in X:
+        new_row = []
+        new_row.extend(row)
+        l = len(row)
+        for i in range(l):
+            for j in range(l):
+                new_row.append(row[i]*row[j])
+        X_new.append(new_row)
+    return X_new
 
 class RecommenderSystem():
     '''
@@ -149,6 +162,12 @@ class VocabList():
     
 if __name__ == '__main__':
     # some tests
+    X = array([[1., 0.2],
+               [0.5, 0.3],
+               [0., 1.]])
+    X = expand_feature_vector(X)
+    printlist(X)
+    '''
     content = fetch_content('codinghorror.com', '/blog')
     content = preprocess(content)
     tmp = ''
@@ -165,3 +184,4 @@ if __name__ == '__main__':
     print vlist.gen_mask()
     vec = gen_feature_vector(vlist.gen_mask(), "Because of something.")
     print vec
+    '''
