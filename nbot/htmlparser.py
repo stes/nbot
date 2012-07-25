@@ -4,21 +4,19 @@ Created on 23.07.2012
 @author: stes
 '''
 
-from nbot.google.google import *
 from nbot.google.BeautifulSoup import BeautifulSoup, SoupStrainer
+from nbot.google.google import *
 from tools import *
-import httplib
-import httplib2
 import re
+import urllib2
 
 def fetch_content(uri):
     '''
     fetches content from the specified webpage and returns
     the html document
     '''
-    http = httplib2.Http()
-    status, response = http.request(uri)
-    return response
+    response = urllib2.urlopen(uri)
+    return response.read()
 
 def remove_tags(data):
     p = re.compile(r'<.*?>', re.DOTALL)
@@ -55,7 +53,7 @@ def google_search(query, results):
 
 if __name__ == "__main__":
     #TODO fix this
-    content = fetch_content('http://www.codinghorror.com/blog/\
-                        2012/07')
+    content = fetch_content('http://www.codinghorror.com/blog/' \
+                            '2012/07')
     print (BeautifulSoup(content)).prettify()
     printlist(get_hyperlinks(content))
