@@ -4,7 +4,10 @@ Created on 23.07.2012
 @author: stes
 '''
 
-from src.nbot.htmlparser import *
+from nbot.htmlparser import *
+from nbot.document import *
+from hashlib import sha1
+from random import shuffle
 
 class Crawler():
     '''
@@ -22,8 +25,31 @@ class Crawler():
     def crawl(self):
         q = []
         q.extend(self.__queue)
-        while q:
+        lib = Library()
+        i = 200
+        visited = []
+        while q and i > 0:
+            i -= 1
             url = q.pop(0)
-            page = fetch_content(url)
-            q.extend(get_hyperlinks(page))
+            urlhash = sha1(url)
+            if urlhash in visited:
+                continue
+            visited.append(urlhash)
+            print 'getting %s' % url
+            try:
+                page = fetch_content(url)
+            except:
+                continue
+            hrefs = get_hyperlinks(page)
+            shuffle(hrefs)
+            print 'found %d new hyperlinks' % len(hrefs)
+            q.extend(hrefs)
+            doc = Document(page)
+            lib.add_document(doc)
+        lib.save('pages')
+            
         # TODO
+
+if __name__ == '__main__':
+    crawler = Crawler(['http://www.news.google.com'], 5)
+    crawler.crawl()

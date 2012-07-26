@@ -4,6 +4,7 @@ obj
 
 # ressources (save files etc.)
 res
+pages
 
 # bytecode
 *.pyc

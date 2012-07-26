@@ -19,8 +19,7 @@ def fetch_content(uri):
     return response.read()
 
 def remove_tags(data):
-    p = re.compile(r'<.*?>', re.DOTALL)
-    return p.sub('', data)
+    return ''.join(BeautifulSoup(data).findAll(text=True))
 
 def remove_spaces(data):
     p = re.compile(r'\s+')
@@ -55,5 +54,5 @@ if __name__ == "__main__":
     #TODO fix this
     content = fetch_content('http://www.codinghorror.com/blog/' \
                             '2012/07')
-    print (BeautifulSoup(content)).prettify()
+    print (remove_tags(content))
     printlist(get_hyperlinks(content))
