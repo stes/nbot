@@ -6,7 +6,31 @@ Created on 24.07.2012
 
 from hashlib import sha1
 from operator import itemgetter
+import string
 import os
+import re
+from nbot.htmlparser import *
+from stemming.porter import stem
+
+def preprocess(text):
+    '''
+    preprocesses the given text before feeding it to the classification
+    system
+    '''
+    p = re.compile(r'<script.*?</script>', re.DOTALL)
+    text = p.sub('', text)
+    p = re.compile(r'<a href.*?</a>', re.DOTALL)
+    #TODO use some better name for this
+    text = p.sub('hyperlinkk', text)
+    text = remove_spaces(remove_tags(text))
+    text = text.lower()
+    p = re.compile(r'[^a-z\s]', re.DOTALL)
+    text = p.sub('', text)
+    
+    stemmed_text = ''
+    for word in text.split():
+        stemmed_text += stem(word) + " "
+    return stemmed_text
 
 def load_document(path):
     '''
@@ -18,7 +42,7 @@ def load_document(path):
         with open(path, 'r') as doc:
             content = doc.readlines()
             #TODO improve this? always list?
-            return Document(content[0])
+            return Document(string.join(content))
     except IOError:
         pass
 
@@ -68,6 +92,7 @@ class VocabList():
         Constructs a new, empty vocabulary list
         '''
         self.__dict = dict()
+        self.__totalwords = 0
     
     def expand_with(self, text):
         '''
@@ -79,6 +104,7 @@ class VocabList():
                 self.__dict[word] += 1
             else:
                 self.__dict[word] = 1
+            self.__totalwords += 1
     
     def clean(self, threshold):
         '''
@@ -90,6 +116,7 @@ class VocabList():
             if (self.__dict[item] <= threshold):
                 rmv.append(item)
         for item in rmv:
+            self.__totalwords -= self.__dict[item]
             self.__dict.pop(item)
     
     def gen_mask(self):
@@ -119,6 +146,9 @@ class VocabList():
         if not self.__dict.has_key(word):
             return 0
         return self.__dict[word]
+    
+    def get_total_word_count(self):
+        return self.__totalwords
     
     def __str__(self):
         string = ''
@@ -163,6 +193,9 @@ class Library():
         '''
         return self.__dict.get(sha1)
     
+    def get_keys(self):
+        return self.__dict.keys()
+    
     def sort(self):
         '''
         Sorts the documents in this library according to their sha1 hashes
@@ -193,7 +226,8 @@ class Library():
     def gen_vocablist(self):
         vlist = VocabList()
         for doc in self.__dict.values():
-            vlist.expand_with(doc.content())
+            content = preprocess(doc.content())
+            vlist.expand_with(content)
         return vlist
     
     def __str__(self):

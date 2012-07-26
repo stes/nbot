@@ -11,28 +11,8 @@ from htmlparser import *
 from numpy import *
 from numpy.linalg import *
 from tools import printlist
-from stemming.porter import stem
 from ai.linearreg import LinearRegression
-
-def preprocess(text):
-    '''
-    preprocesses the given text before feeding it to the classification
-    system
-    '''
-    p = re.compile(r'<script.*?</script>', re.DOTALL)
-    text = p.sub('', text)
-    p = re.compile(r'<a href.*?</a>', re.DOTALL)
-    #TODO use some better name for this
-    text = p.sub('hyperlinkk', text)
-    text = remove_spaces(remove_tags(text))
-    text = text.lower()
-    p = re.compile(r'[^a-z\s]', re.DOTALL)
-    text = p.sub('', text)
-    
-    stemmed_text = ''
-    for word in text.split():
-        stemmed_text += stem(word) + " "
-    return stemmed_text
+from nbot.document import preprocess, load_document
 
 def gen_feature_vector(mask, text):
     '''
@@ -54,7 +34,7 @@ def gen_feature_vector(mask, text):
     vlist.expand_with(processed)
     fvector = []
     for word in mask:
-        fvector.append(vlist.quantity_of(word))
+        fvector.append(vlist.quantity_of(word) / float(vlist.get_total_word_count()))
     return fvector
 
 def expand_features(X):
@@ -87,12 +67,12 @@ class RecommenderSystem():
     System to rate new pages and estimate the relevance for the user
     '''
 
-    def __init__(self, mask):
+    def __init__(self, mask, n):
         '''
         Constructor
         '''
         self.__wordmask = mask
-        self.__lreg = LinearRegression(len(mask))
+        self.__lreg = LinearRegression(n)
         self.__training_set = []
         self.__ratings = []
     
@@ -135,6 +115,58 @@ if __name__ == '__main__':
     
     from nbot.document import Document, Library, VocabList
     
+    doc0 = load_document('res/sample/blubb.html')
+    doc1 = load_document('res/sample/page.html')
+    doc2 = load_document('res/sample/dislikepage.html')
+    
+    lib_like = Library()
+    lib_like.load('res/like', False)
+    
+    lib_dislike = Library()
+    lib_dislike.load('res/dislike', False)
+    
+    vlist_like = lib_like.gen_vocablist()
+    vlist_dislike = lib_dislike.gen_vocablist()
+    
+    vlist_like.clean(10)
+    vlist_dislike.clean(10)
+    
+    like_mask = vlist_like.gen_mask()
+    dislike_mask = vlist_dislike.gen_mask()
+    
+    printlist(like_mask)
+    print '-------------------------------------------'
+    printlist(dislike_mask)
+    
+    mask = []
+    mask.extend(like_mask)
+    mask.extend(dislike_mask)
+    
+    rsys = RecommenderSystem(mask, len(mask))
+    for key in lib_like.get_keys():
+        doc = lib_like.get_document(key)
+        rsys.set_rate(doc.content(), 1.)
+    
+    for key in lib_dislike.get_keys():
+        doc = lib_dislike.get_document(key)
+        rsys.set_rate(doc.content(), 0.)
+    
+    rsys.train(10000000, 0.1)
+
+    for key in lib_like.get_keys()[:5]:
+        doc = lib_like.get_document(key)
+        print rsys.rate(doc.content())
+    
+    for key in lib_dislike.get_keys()[:5]:
+        doc = lib_dislike.get_document(key)
+        print rsys.rate(doc.content())
+    
+    print '---------------------------------------'
+    print rsys.rate(doc0.content())
+    print rsys.rate(doc1.content())
+    print rsys.rate(doc2.content())
+    
+    '''
     texts = ['duck duck duck duck duck',
              'duck pidgin pidgin pidgin pidgin',
              'duck duck duck duck pidgin',
@@ -150,6 +182,7 @@ if __name__ == '__main__':
               0.75,
               0.9]
     
+    
     libr = Library()
     for i in range(len(texts)):
         libr.add_document(Document(texts[i]))
@@ -157,17 +190,17 @@ if __name__ == '__main__':
     vlist = libr.gen_vocablist()
     print vlist
     
-    rsys = RecommenderSystem(vlist.gen_mask())
+    rsys = RecommenderSystem(vlist.gen_mask(), 9)
     for i in range(len(texts)):
         rsys.set_rate(texts[i], ratings[i])
     
-    rsys.train(1000, 0.1)
+    rsys.train(100000, 0.1)
     for i in range(len(texts)):
         print rsys.rate(texts[i])
     # obviously, the users likes ducks and pigs most ;)
-    print rsys.rate('duck pig pig pig duck duck')
+    print rsys.rate('duck pig pig pig duck duck duck duck duck duck')
     
-    
+    '''
     '''
     content = fetch_content('codinghorror.com', '/blog')
     content = preprocess(content)
