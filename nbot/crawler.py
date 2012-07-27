@@ -65,7 +65,7 @@ class Crawler():
             except:
                 continue
             iterations -= 1
-            hrefs = get_hyperlinks(page)
+            hrefs = get_hyperlinks(page, get_host(url))
             shuffle(hrefs)
             print 'found %d new hyperlinks' % len(hrefs)
             for href in hrefs[:10]:
