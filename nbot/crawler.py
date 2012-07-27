@@ -11,84 +11,95 @@ from random import shuffle
 from time import time
 from Queue import Queue
 from threading import Thread
+import bisect
 
 class Crawler():
     '''
     classdocs
     '''
 
-    def __init__(self, urllist, depth):
+    def __init__(self, urllist, recsys):
         '''
-        Constructor
+        Constructs a new crawler using the specified url list and the specified
+        recommender system to rate the relevance of the downloaded pages
+        
+        @param urllist: A list of urls to start with
+        @param recsys: A recommender system to rate pages
         '''
         self.__urllist = urllist
-        self.__depth = depth
         self.__queue = Queue()
-        self.__id = 0
+        self.__recsys = recsys
+        self.__threads = []
+
+    def crawl(self, threads=2):
+        '''
+        Starts crawling using the (optional) specified number of threads
+        Blocks until crawling is finished
+        
+        @param threads: The number of threads used for crawling, default is 2
+        '''
+        for i in range(threads):
+            t = _CrawlThread(i, self.__queue)
+            self.__threads.append(t)
+            t.deamon = True
+            t.start()
+        for url in self.__urllist:
+            self.__queue.put([1, url])
+        self.__queue.join()
     
-    def crawl(self):
-        q = [self.__urllist]
-        lib = Library()
-        i = 500
-        visited = []
-        while q and i > 0:
-            print 'currently %d elements in the queue' % len(q)
-            url = q.pop(0)
-            urlhash = sha1(url)
-            if urlhash in visited:
-                continue
-            visited.append(urlhash)
-            print 'getting %s' % url
+    def abort(self):
+        '''
+        Safely aborts the crawling threads and saves the downloaded
+        webpages
+        '''
+        for t in self.__threads:
+            t.request_stop()
+
+class _CrawlThread(Thread):
+    
+    def __init__(self, id, queue):
+        Thread.__init__(self)
+        self.__id = id
+        self.__queue = queue
+        self.__running = True
+        self.__recsys = None
+        self.__lib = Library()
+    
+    def run(self):
+        self.__crawl()
+    
+    def request_stop(self):
+        self.__running = False
+    
+    def __crawl(self):
+        while self.__running:
+            url = self.__queue.get(True, None)[1]
+            print '%d: getting %s' % (self.__id, url)
             try:
                 page = fetch_content(url)
             except:
                 continue
-            i -= 1
-            hrefs = get_hyperlinks(page)
-            shuffle(hrefs)
-            print 'found %d new hyperlinks' % len(hrefs)
-            q.extend(hrefs[:10])
-            doc = Document(page)
-            lib.add_document(doc)
+            self.__update_hrefs(page)
+            self.__queue.task_done()
         lib.save('pages')
     
-    def crawl_url(self):
-        id = self.__id
-        self.__id += 1
-        iterations = 100
-        lib = Library()
-        while iterations > 0:
-            url = self.__queue.get(True, None)
-            print '%d: getting %s' % (id, url)
-            try:
-                page = fetch_content(url)
-            except:
-                continue
-            iterations -= 1
-            hrefs = get_hyperlinks(page)
-            shuffle(hrefs)
-            print 'found %d new hyperlinks' % len(hrefs)
-            for href in hrefs[:10]:
-                self.__queue.put(href)
-            doc = Document(page)
-            lib.add_document(doc)
-            self.__queue.task_done()
-        return lib
-
-    def crawl_threading(self, threads):
-        for i in range(threads):
-            t = Thread(target=self.crawl_url)
-            t.daemon = True
-            t.start()
-        self.__queue.put(self.__urllist)
-        self.__queue.join()
-        print 'done'
-        # TODO
+    def __update_hrefs(self, page):
+        hrefs = get_hyperlinks(page)
+        doc = Document(page)
+        shuffle(hrefs)
+        print 'found %d new hyperlinks' % len(hrefs)
+        for href in hrefs[:50]:
+            r = 1
+            if self.__recsys:
+                r = self.__recsys.rate(doc.content())
+            self.__queue.put([r, href])
+        self.__lib.add_document(doc)
+        
 
 if __name__ == '__main__':
     starttime = time()
-    crawler = Crawler('http://news.google.com', 5)
-    crawler.crawl_threading(8)
+    crawler = Crawler(['http://news.google.com'], None)
+    crawler.crawl(4)
     print 'finished crawling'
     stoptime = time()
     print 'crawled for %f seconds' % (stoptime-starttime)
