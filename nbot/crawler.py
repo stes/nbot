@@ -7,11 +7,10 @@ Created on 23.07.2012
 from nbot.htmlparser import *
 from nbot.document import *
 from hashlib import sha1
-from random import shuffle
+from random import random
 from time import time
-from Queue import Queue
+from nbot.queue import PriorityQueue
 from threading import Thread
-import bisect
 
 class Crawler():
     '''
@@ -27,7 +26,7 @@ class Crawler():
         @param recsys: A recommender system to rate pages
         '''
         self.__urllist = urllist
-        self.__queue = Queue()
+        self.__queue = PriorityQueue()
         self.__recsys = recsys
         self.__threads = []
 
@@ -44,7 +43,7 @@ class Crawler():
             t.deamon = True
             t.start()
         for url in self.__urllist:
-            self.__queue.put([1, url])
+            self.__queue.enqueue(url, 1.)
         self.__queue.join()
     
     def abort(self):
@@ -73,7 +72,7 @@ class _CrawlThread(Thread):
     
     def __crawl(self):
         while self.__running:
-            url = self.__queue.get(True, None)[1]
+            url = self.__queue.dequeue(True)
             print '%d: getting %s' % (self.__id, url)
             try:
                 page = fetch_content(url)
@@ -92,7 +91,7 @@ class _CrawlThread(Thread):
             r = 1
             if self.__recsys:
                 r = self.__recsys.rate(doc.content())
-            self.__queue.put([r, href])
+            self.__queue.enqueue(href, random())
         self.__lib.add_document(doc)
         
 
