@@ -193,6 +193,9 @@ class Library():
         '''
         return self.__dict.get(sha1)
     
+    def rmv_document(self, sha1):
+        return self.__dict.pop(sha1)
+    
     def get_keys(self):
         return self.__dict.keys()
     

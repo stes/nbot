@@ -70,3 +70,6 @@ class PriorityQueue():
         '''
         while len(self.__queue) > 0 or self.__open_tasks > 0:
             sleep(0)
+    
+    def __len__(self):
+        return len(self.__queue)

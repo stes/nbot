@@ -10,9 +10,8 @@ given text and rate the relevance of the text for the user
 from htmlparser import *
 from numpy import *
 from numpy.linalg import *
-from tools import printlist
 from ai.linearreg import LinearRegression
-from nbot.document import preprocess, load_document
+from nbot.document import preprocess, load_document, VocabList
 
 def gen_feature_vector(mask, text):
     '''
@@ -103,12 +102,10 @@ class RecommenderSystem():
         @param learnrate: the learning rate
         '''
         [X, Y] = self.__gen_matrix()
-        print X
-        print Y
         self.__lreg.train(iterations, learnrate, X, Y)
     
     def __gen_matrix(self):
-        return [ array(self.__training_set), array(self.__ratings) ]                      
+        return [ array(self.__training_set), array(self.__ratings) ]
     
 if __name__ == '__main__':
     # some tests
@@ -121,9 +118,20 @@ if __name__ == '__main__':
     
     lib_like = Library()
     lib_like.load('res/like', False)
-    
     lib_dislike = Library()
     lib_dislike.load('res/dislike', False)
+    
+    like_cv = []
+    keys = lib_like.get_keys()
+    shuffle(keys)
+    for key in keys[:5]:
+        like_cv.append(lib_like.rmv_document(key))
+    
+    dislike_cv = []
+    keys = lib_dislike.get_keys()
+    shuffle(keys)
+    for key in keys[:5]:
+        dislike_cv.append(lib_dislike.rmv_document(key))
     
     vlist_like = lib_like.gen_vocablist()
     vlist_dislike = lib_dislike.gen_vocablist()
@@ -153,11 +161,15 @@ if __name__ == '__main__':
     
     rsys.train(10000000, 0.1)
 
-    for key in lib_like.get_keys()[:5]:
+    likes = lib_like.get_keys()
+    shuffle(likes)
+    for key in likes[:5]:
         doc = lib_like.get_document(key)
         print rsys.rate(doc.content())
     
-    for key in lib_dislike.get_keys()[:5]:
+    dislikes = lib_dislike.get_keys()
+    shuffle(dislikes)
+    for key in dislikes[:5]:
         doc = lib_dislike.get_document(key)
         print rsys.rate(doc.content())
     
@@ -165,6 +177,19 @@ if __name__ == '__main__':
     print rsys.rate(doc0.content())
     print rsys.rate(doc1.content())
     print rsys.rate(doc2.content())
+    print '---------------------------------------'
+    print 'CV data'
+    print '(1) LIKE'
+    for doc in like_cv:
+        print rsys.rate(doc.content())
+    
+    print '(2) DISLIKE'
+    for doc in dislike_cv:
+        print rsys.rate(doc.content())
+    
+    # This seems to work, however, more training/cv data will be necessary!  
+    
+    print '---------------------------------------'
     
     '''
     texts = ['duck duck duck duck duck',
