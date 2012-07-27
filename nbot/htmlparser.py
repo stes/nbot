@@ -38,10 +38,10 @@ def get_hyperlinks(html, host):
     for link in BeautifulSoup(html, parseOnlyThese=SoupStrainer('a')):
         if link.has_key('href') and len(link['href']) > 0:
             link['href']
-            print '"'+link['href']+'"'
+            #print '"'+link['href']+'"'
             if link['href'][0] == '/':
                 link['href'] = host + link['href']
-                print '=> "'+link['href']+'"'
+                #print '=> "'+link['href']+'"'
             urllist.append(link['href'])
     return urllist
 
