@@ -18,6 +18,10 @@ def fetch_content(uri):
     response = urllib2.urlopen(uri)
     return response.read()
 
+def get_host(uri):
+    request = urllib2.Request(uri)
+    return request.get_host()
+
 def remove_tags(data):
     return ''.join(BeautifulSoup(data).findAll(text=True))
 
@@ -25,14 +29,19 @@ def remove_spaces(data):
     p = re.compile(r'\s+')
     return p.sub(' ', data)
 
-def get_hyperlinks(html):
+def get_hyperlinks(html, host):
     '''
     extracts all hyperlinks from the given html document
     and returns them in a list
     '''
     urllist = []
     for link in BeautifulSoup(html, parseOnlyThese=SoupStrainer('a')):
-        if link.has_key('href'):
+        if link.has_key('href') and len(link['href']) > 0:
+            link['href']
+            #print '"'+link['href']+'"'
+            if link['href'][0] == '/':
+                link['href'] = host + link['href']
+                #print '=> "'+link['href']+'"'
             urllist.append(link['href'])
     return urllist
 
@@ -46,13 +55,13 @@ def google_search(query, results):
     urls = []
     for url in url_gen:
         urls.append(url)
-        if (len(urls) >= results):
+        if len(urls) >= results:
             break
     return urls
 
 if __name__ == "__main__":
     #TODO fix this
-    content = fetch_content('http://www.codinghorror.com/blog/' \
-                            '2012/07')
-    print (remove_tags(content))
-    printlist(get_hyperlinks(content))
+    url = 'http://www.codinghorror.com/blog/2012/07'
+    content = fetch_content(url)
+    print(remove_tags(content))
+    printlist(get_hyperlinks(content, get_host(url)))

@@ -79,12 +79,12 @@ class _CrawlThread(Thread):
                 page = fetch_content(url)
             except:
                 continue
-            self.__update_hrefs(page)
+            self.__update_hrefs(page, get_host(url))
             self.__queue.task_done()
         lib.save('pages')
     
-    def __update_hrefs(self, page):
-        hrefs = get_hyperlinks(page)
+    def __update_hrefs(self, page, host):
+        hrefs = get_hyperlinks(page, host)
         doc = Document(page)
         shuffle(hrefs)
         print 'found %d new hyperlinks' % len(hrefs)
